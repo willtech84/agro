@@ -38,6 +38,8 @@ O `JWT_SECRET` é gerado automaticamente pelo Render.
 
 Na produção, `ALLOW_PUBLIC_REGISTRATION=false` fecha o cadastro público depois que já existe usuário. O admin inicial é criado com `ADMIN_EMAIL` e `ADMIN_PASSWORD`; depois de entrar com esse admin, use o cadastro de usuário dentro do app para criar gestores e operadores.
 
+No plano gratuito do Render, `preDeployCommand` não é suportado. Por isso o Blueprint roda `npx prisma migrate deploy` dentro do `startCommand` da API; esse comando é idempotente e aplica somente migrations pendentes antes de iniciar o servidor.
+
 ## 3. URLs finais
 
 Se mantiver os nomes do `render.yaml`, as URLs serão:

@@ -6,8 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm ci --include=dev && npx prisma generate
-    preDeployCommand: npx prisma migrate deploy
-    startCommand: node src/index.js
+    startCommand: npx prisma migrate deploy && node src/index.js
     healthCheckPath: /health
     autoDeploy: true
     envVars:
