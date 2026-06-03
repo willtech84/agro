@@ -23,6 +23,27 @@ Serviços:
 - Backend: `http://localhost:4000`
 - PostgreSQL: `localhost:5432`
 
+## Deploy em nuvem com HTTPS
+
+O projeto está preparado para deploy no **Render + Neon**:
+
+- `render.yaml`: Blueprint do Render com `agrogerenciamento-api` e `agrogerenciamento-web`.
+- `.env.render.example`: variáveis de produção para copiar/conferir.
+- `docs/DEPLOY_RENDER_NEON.md`: passo a passo de publicação.
+
+Fluxo recomendado:
+
+1. Crie um banco PostgreSQL no Neon e copie a connection string com `sslmode=require`.
+2. No Render, crie um Blueprint usando o `render.yaml`.
+3. Preencha `DATABASE_URL`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
+4. Use no APK a URL HTTPS da API:
+
+```text
+https://agrogerenciamento-api.onrender.com
+```
+
+Se o Render gerar outro subdomínio, atualize `BACKEND_URL`, `PUBLIC_API_BASE_URL`, `CORS_ORIGINS` e `FRONTEND_PUBLIC_URL` no painel do Render.
+
 ## Rodar local sem Docker
 
 ### Backend
@@ -80,6 +101,65 @@ cd /c/agro
 
 No navegador compatível (Chrome/Edge Android/Desktop), abra o frontend e use o botão **Instalar aplicativo** quando aparecer.
 
+## APK Android
+
+O projeto também pode ser empacotado como APK Android com Capacitor.
+
+APK gerado nesta máquina:
+
+```text
+C:\agro\dist\agro-gerenciamento-debug.apk
+```
+
+Para instalar em um aparelho conectado via USB com depuração habilitada:
+
+```bash
+adb install -r C:/agro/dist/agro-gerenciamento-debug.apk
+```
+
+No APK, o app abre o campo **Servidor do app** antes de tentar buscar dados. Use o IP do computador/servidor na mesma rede, por exemplo `http://192.168.1.50:4000`. `localhost` e `10.0.2.2` não funcionam em celular físico.
+
+Fora da rede local, o IP `192.168.x.x` não funciona. Para acesso externo simples e seguro, use uma VPN privada como Tailscale no computador e no celular; depois informe no app o IP Tailscale do computador, por exemplo `http://100.x.y.z:4000`.
+
+Se `http://IP_DO_COMPUTADOR:4000/health` abre no navegador do celular, mas o APK ainda não conecta, atualize o backend e reinstale o APK mais recente:
+
+```bash
+cd C:\agro
+docker compose up -d --build
+adb install -r C:\agro\dist\agro-gerenciamento-debug.apk
+```
+
+No campo **Servidor do app**, informe somente a base do servidor, sem `/health`:
+
+```text
+http://192.168.1.8:4000
+```
+
+Para gerar novamente:
+
+```bash
+cd frontend
+npm run android:debug
+```
+
+Para publicação comercial/Play Store, gere um APK/AAB release assinado com uma chave privada de produção.
+
+## Modo desktop Windows
+
+Para usar como aplicativo no computador, abra:
+
+```text
+C:\agro\dist\AgroGerenciamento-Desktop.cmd
+```
+
+Ele sobe os containers com `docker compose up -d` e abre o sistema em uma janela de aplicativo do Edge/Chrome.
+
+Para criar atalho na Área de Trabalho:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\agro\dist\Criar-Atalho-Desktop.ps1
+```
+
 ## Workflows
 
 - `build-android-debug.yml`: build de APK debug e upload de artefato
@@ -129,6 +209,7 @@ npm run prisma:migrate
 - `POST /auth/login`
 - `GET /auth/me` (Bearer token)
 - `GET /users` (Bearer token, role ADMIN/MANAGER)
+- `POST /users` (Bearer token, role ADMIN/MANAGER)
 - `GET /farms` (Bearer token)
 - `POST /farms` (Bearer token)
 - `PUT /farms/:id` (Bearer token)

@@ -1,0 +1,9 @@
+{
+  "appId": "com.agrogerenciamento.app",
+  "appName": "Agro Gerenciamento",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
+}

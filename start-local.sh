@@ -9,6 +9,7 @@ FRONTEND_LOG="$ROOT_DIR/frontend.log"
 BACKEND_PORT="${BACKEND_PORT:-4000}"
 FRONTEND_PORT="${FRONTEND_PORT:-3001}"
 BACKEND_URL="${BACKEND_URL:-http://localhost:$BACKEND_PORT}"
+export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--use-system-ca"
 
 cleanup() {
   if [[ -n "${BACKEND_PID:-}" ]]; then
@@ -44,11 +45,11 @@ fi
 
 echo "[agro-local] Instalando dependências do backend..."
 cd "$BACKEND_DIR"
-npm install --silent
+npm install --silent --no-audit
 
 echo "[agro-local] Instalando dependências do frontend..."
 cd "$FRONTEND_DIR"
-npm install --silent
+npm install --silent --no-audit
 
 echo "[agro-local] Iniciando backend na porta $BACKEND_PORT..."
 cd "$BACKEND_DIR"

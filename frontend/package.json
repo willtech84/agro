@@ -3,7 +3,22 @@
   "version": "1.0.0",
   "description": "Frontend for Agro Gerenciamento",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "node scripts/build-web.mjs",
+    "android:icons": "node scripts/generate-android-icons.mjs",
+    "android:sync": "npm run build && npm run android:icons && cap sync android",
+    "android:debug": "npm run android:sync && cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.2",
+    "@capacitor/cli": "^7.6.2",
+    "@capacitor/core": "^7.6.2"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
   }
 }

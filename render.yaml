@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: agrogerenciamento-api
+    runtime: node
+    region: virginia
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --include=dev && npx prisma generate
+    preDeployCommand: npx prisma migrate deploy
+    startCommand: node src/index.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://agrogerenciamento-web.onrender.com,capacitor://localhost,ionic://localhost
+      - key: FRONTEND_PUBLIC_URL
+        value: https://agrogerenciamento-web.onrender.com
+      - key: ALLOW_PUBLIC_REGISTRATION
+        value: "false"
+      - key: SEED_ADMIN
+        value: "true"
+      - key: ADMIN_NAME
+        value: Administrador
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+  - type: web
+    name: agrogerenciamento-web
+    runtime: node
+    region: virginia
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BACKEND_URL
+        value: https://agrogerenciamento-api.onrender.com
+      - key: PUBLIC_API_BASE_URL
+        value: https://agrogerenciamento-api.onrender.com

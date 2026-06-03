@@ -55,16 +55,35 @@ async function proxyApi(req, res, pathname, search) {
   const target = `${backendUrl}${pathname.replace(/^\/api/, "")}${search}`;
 
   try {
-    const upstream = await fetch(target, {
+    const headers = {
+      accept: firstHeader(req.headers.accept) || "application/json"
+    };
+
+    if (req.headers.authorization) {
+      headers.authorization = firstHeader(req.headers.authorization);
+    }
+
+    if (req.headers["content-type"]) {
+      headers["content-type"] = firstHeader(req.headers["content-type"]);
+    }
+
+    const fetchOptions = {
       method: req.method,
-      headers: {
-        accept: req.headers.accept || "application/json"
-      }
+      headers
+    };
+
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      fetchOptions.body = req;
+      fetchOptions.duplex = "half";
+    }
+
+    const upstream = await fetch(target, {
+      ...fetchOptions
     });
 
     const body = await upstream.arrayBuffer();
-    const headers = { "Content-Type": upstream.headers.get("content-type") || "application/json; charset=utf-8" };
-    res.writeHead(upstream.status, headers);
+    const responseHeaders = { "Content-Type": upstream.headers.get("content-type") || "application/json; charset=utf-8" };
+    res.writeHead(upstream.status, responseHeaders);
     res.end(Buffer.from(body));
   } catch (error) {
     res.writeHead(502, { "Content-Type": "application/json; charset=utf-8" });
@@ -86,6 +105,10 @@ async function serveFile(res, filePath) {
   } catch {
     return false;
   }
+}
+
+function firstHeader(value) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 const server = createServer(async (req, res) => {

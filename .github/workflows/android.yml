@@ -61,13 +61,13 @@ jobs:
           mv cmdline/cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
           # Accept licenses and install required packages
           yes | cmdline-tools/latest/bin/sdkmanager --sdk_root="$SDK_ROOT" --licenses || true
-          cmdline-tools/latest/bin/sdkmanager --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          cmdline-tools/latest/bin/sdkmanager --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Export Android environment variables
         run: |
           echo "ANDROID_SDK_ROOT=${{ runner.temp }}/android-sdk" >> $GITHUB_ENV
           echo "ANDROID_HOME=${{ runner.temp }}/android-sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:${{ runner.temp }}/android-sdk/platform-tools:${{ runner.temp }}/android-sdk/cmdline-tools/latest/bin:${{ runner.temp }}/android-sdk/build-tools/34.0.0" >> $GITHUB_ENV
+          echo "PATH=$PATH:${{ runner.temp }}/android-sdk/platform-tools:${{ runner.temp }}/android-sdk/cmdline-tools/latest/bin:${{ runner.temp }}/android-sdk/build-tools/35.0.0" >> $GITHUB_ENV
 
       - name: Verify Android SDK installation
         run: |
@@ -85,10 +85,7 @@ jobs:
           fi
           cd frontend
           npm ci
-          npm run build
-          # install capacitor only for sync (no save)
-          npm install --no-save @capacitor/core @capacitor/cli
-          npx cap sync android
+          npm run android:sync
         shell: bash
 
       - name: Build Android debug APK

@@ -6,49 +6,81 @@
     <meta name="theme-color" content="#1d6f42" />
     <meta name="description" content="Console inicial do Agro Gerenciamento" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Agro Gerenciamento</title>
     <style>
       body { font-family: "Segoe UI", sans-serif; margin: 0; background: #f4f7f5; color: #1f2a24; }
       header { background: #1d6f42; color: #fff; padding: 24px; text-align: center; }
-      main { max-width: 980px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+      main { max-width: 1180px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
       .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+      .wide { max-width: 1180px; }
       .status { display: inline-flex; align-items: center; padding: 8px 12px; border-radius: 999px; font-weight: 600; }
       .status.ok { background: #e2f6ea; color: #1a7f37; }
       .status.error { background: #ffe7e7; color: #c81e1e; }
-      .details { margin-top: 12px; font-family: Consolas, monospace; background: #f2f4f3; padding: 12px; border-radius: 8px; white-space: pre-wrap; }
+      .details { margin-top: 12px; background: #eef6f1; color: #24553a; padding: 10px 12px; border-radius: 8px; border: 1px solid #cfe4d7; font-size: 14px; }
+      .details.error { background: #fff0ef; color: #9a1b15; border-color: #f2c3be; }
+      .details.warning { background: #fff8e7; color: #735000; border-color: #eed69a; }
+      .details:empty { display: none; }
+      .details[hidden] { display: none; }
       .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
       .grid2 { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .grid3 { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+      .metric-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .metric { border: 1px solid #dce5df; border-radius: 8px; padding: 12px; background: #f8fbf9; }
+      .metric strong { display: block; font-size: 22px; }
       label { display: grid; gap: 4px; font-size: 14px; }
       input, select, textarea { padding: 9px; border-radius: 8px; border: 1px solid #d0d8d3; }
+      input[type="file"] { background: #fff; }
       button { background: #1d6f42; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
       button.secondary { background: #2f4f3f; }
       button.danger { background: #b3261e; }
+      button.small { padding: 6px 9px; font-size: 12px; }
       button[hidden] { display: none; }
       #install { background: #164f31; }
       .item { border: 1px solid #dce5df; border-radius: 8px; padding: 12px; margin-top: 8px; }
       .muted { color: #5b6860; font-size: 13px; }
+      .inline-field { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: end; }
+      .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; background: #e8efe9; font-size: 12px; margin-right: 4px; }
+      .alert { border-left: 4px solid #b26a00; background: #fff8e7; }
+      .api-config { margin-top: 14px; padding-top: 14px; border-top: 1px solid #dce5df; }
+      .api-config .muted { margin: 6px 0 0; }
+      .toast { position: fixed; right: 18px; bottom: 18px; z-index: 20; max-width: min(420px, calc(100vw - 36px)); background: #163d2a; color: #fff; padding: 12px 14px; border-radius: 8px; box-shadow: 0 10px 26px rgba(0,0,0,.22); font-weight: 600; }
+      .toast.error { background: #9a1b15; }
+      .toast.warning { background: #735000; }
+      .toast[hidden] { display: none; }
     </style>
   </head>
   <body>
+    <div id="toast" class="toast" hidden></div>
     <header>
       <h1>Agro Gerenciamento</h1>
-      <p>Sprint 3: Culturas + Atividades + Relatórios simples</p>
+      <p>Operação rural: produção, estoque, financeiro, equipe, máquinas e alertas</p>
     </header>
     <main>
       <section class="card">
-        <h2>Status do backend</h2>
+        <h2>Status do sistema</h2>
         <div id="status" class="status">Carregando...</div>
         <div id="details" class="details"></div>
         <div class="actions">
           <button id="refresh">Atualizar status</button>
           <button id="install" hidden>Instalar aplicativo</button>
         </div>
+        <div id="api-config" class="api-config" hidden>
+          <div class="grid2">
+            <label>Servidor do app <input id="api-base-url" type="url" placeholder="https://agrogerenciamento-api.onrender.com" /></label>
+          </div>
+          <p class="muted">Use a URL HTTPS da API no Render. Para teste local na mesma rede, também pode usar o IP do computador.</p>
+          <div class="actions">
+            <button id="save-api-url" class="secondary">Salvar e testar servidor</button>
+          </div>
+        </div>
       </section>
 
       <section class="card">
         <h2>Login</h2>
         <div class="grid2">
-          <label>Email <input id="login-email" type="email" placeholder="admin@agro.local" /></label>
+          <label>Email <input id="login-email" type="text" inputmode="email" placeholder="admin@agro.local" /></label>
           <label>Senha <input id="login-password" type="password" placeholder="******" /></label>
         </div>
         <div class="actions">
@@ -63,7 +95,7 @@
         <h2>Cadastro rápido de usuário</h2>
         <div class="grid2">
           <label>Nome <input id="register-name" type="text" placeholder="Administrador" /></label>
-          <label>Email <input id="register-email" type="email" placeholder="admin@agro.local" /></label>
+          <label>Email <input id="register-email" type="text" inputmode="email" placeholder="admin@agro.local" /></label>
           <label>Senha <input id="register-password" type="password" placeholder="mínimo 6 caracteres" /></label>
           <label>Perfil
             <select id="register-role">
@@ -81,7 +113,7 @@
         <div class="grid2">
           <label>Nome <input id="farm-name" type="text" placeholder="Fazenda Santa Luzia" /></label>
           <label>Localização <input id="farm-location" type="text" placeholder="Sorriso/MT" /></label>
-          <label>Área (ha) <input id="farm-area" type="number" step="0.01" /></label>
+          <label>Área (ha) <input id="farm-area" type="text" inputmode="decimal" /></label>
         </div>
         <div class="actions">
           <button id="btn-farm-save">Salvar fazenda</button>
@@ -97,7 +129,7 @@
         <div class="grid2">
           <label>Fazenda <select id="plot-farm"></select></label>
           <label>Nome <input id="plot-name" type="text" placeholder="Talhão A" /></label>
-          <label>Área (ha) <input id="plot-area" type="number" step="0.01" /></label>
+          <label>Área (ha) <input id="plot-area" type="text" inputmode="decimal" /></label>
         </div>
         <div class="actions">
           <button id="btn-plot-save">Salvar talhão</button>
@@ -113,7 +145,7 @@
         <div class="grid2">
           <label>Nome <input id="crop-name" type="text" placeholder="Soja" /></label>
           <label>Nome científico <input id="crop-scientific" type="text" placeholder="Glycine max" /></label>
-          <label>Ciclo (dias) <input id="crop-cycle" type="number" /></label>
+          <label>Ciclo (dias) <input id="crop-cycle" type="text" inputmode="numeric" /></label>
         </div>
         <div class="actions">
           <button id="btn-crop-save">Salvar cultura</button>
@@ -138,7 +170,7 @@
           <label>Fazenda <select id="activity-farm"></select></label>
           <label>Talhão <select id="activity-plot"></select></label>
           <label>Cultura <select id="activity-crop"></select></label>
-          <label>Quantidade <input id="activity-quantity" type="number" step="0.01" /></label>
+          <label>Quantidade <input id="activity-quantity" type="text" inputmode="decimal" /></label>
           <label>Unidade <input id="activity-unit" type="text" placeholder="kg, L, ha" /></label>
           <label>Observações <textarea id="activity-notes" rows="2"></textarea></label>
         </div>
@@ -151,8 +183,52 @@
         <div id="activity-list"></div>
       </section>
 
+      <section class="card wide">
+        <h2>Dashboard gerencial</h2>
+        <div id="dashboard-metrics" class="metric-grid"></div>
+        <div id="dashboard-alerts"></div>
+        <label>Anotações do dashboard <textarea id="dashboard-notes" rows="3"></textarea></label>
+        <div class="actions">
+          <button id="btn-dashboard-refresh">Atualizar dashboard</button>
+          <button id="btn-dashboard-save" class="secondary">Salvar anotações</button>
+        </div>
+      </section>
+
+      <section class="card wide">
+        <h2>Operação rural</h2>
+        <div class="grid3">
+          <label>Módulo <select id="operational-module"></select></label>
+          <label>Fazenda <select id="operational-farm"></select></label>
+          <label>Talhão <select id="operational-plot"></select></label>
+          <label>Cultura <select id="operational-crop"></select></label>
+          <label>Título <input id="operational-title" type="text" /></label>
+          <label>Status
+            <select id="operational-status">
+              <option value="OPEN">Aberto</option>
+              <option value="PLANNED">Planejado</option>
+              <option value="IN_PROGRESS">Em andamento</option>
+              <option value="DONE">Concluído</option>
+            </select>
+          </label>
+          <label>Data/hora <input id="operational-eventAt" type="datetime-local" /></label>
+          <label>Lembrete/vencimento <input id="operational-dueAt" type="datetime-local" /></label>
+        </div>
+        <div id="operational-fields" class="grid2"></div>
+        <div class="actions">
+          <button id="btn-operational-save">Salvar registro</button>
+          <button id="btn-operational-clear" class="secondary">Limpar</button>
+          <button id="btn-operational-refresh" class="secondary">Atualizar registros</button>
+          <button id="btn-operational-sync" class="secondary">Sincronizar offline</button>
+          <button id="btn-operational-gps" class="secondary">Capturar GPS</button>
+          <button id="btn-operational-export" class="secondary">Exportar Excel/CSV</button>
+          <button id="btn-operational-print" class="secondary">Gerar PDF</button>
+        </div>
+        <div id="operational-details" class="details"></div>
+        <div id="operational-list"></div>
+      </section>
+
       <section class="card">
-        <h2>Relatórios simples</h2>
+        <h2>Relatórios</h2>
         <div class="actions">
           <button id="btn-report-summary">Resumo por tipo</button>
           <button id="btn-report-crop">Atividades por cultura</button>
@@ -160,6 +236,7 @@
         <div id="report-details" class="details"></div>
       </section>
     </main>
-    <script src="/app.js"></script>
+    <script src="/config.js"></script>
+    <script src="/app.js?v=20260530b"></script>
   </body>
 </html>

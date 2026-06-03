@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm install
+RUN npm ci
 RUN npx prisma generate
 
 COPY src ./src
@@ -12,4 +12,4 @@ COPY src ./src
 ENV NODE_ENV=production
 EXPOSE 4000
 
-CMD ["node", "src/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node src/index.js"]

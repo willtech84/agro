@@ -1,11 +1,16 @@
-const CACHE_NAME = "agro-gerenciamento-v2";
+const CACHE_NAME = "agro-gerenciamento-v9";
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/app.js",
+  "/config.js",
+  "/app.js?v=20260530b",
   "/manifest.webmanifest",
   "/icons/icon-192.svg",
-  "/icons/icon-512.svg"
+  "/icons/icon-192.png",
+  "/icons/icon-256.png",
+  "/icons/agro.ico",
+  "/icons/icon-512.svg",
+  "/icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -28,6 +33,22 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (requestUrl.pathname === "/config.js") {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.ok) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
@@ -46,19 +67,15 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((networkResponse) => {
+    fetch(event.request)
+      .then((networkResponse) => {
         if (event.request.method === "GET" && networkResponse.status === 200) {
           const copy = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
 
         return networkResponse;
-      });
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
