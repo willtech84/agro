@@ -182,6 +182,21 @@ function authRequired(req, res, next) {
   }
 }
 
+function optionalAuthenticatedUser(req) {
+  const auth = req.headers.authorization || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    return { user: jwt.verify(token, jwtSecret), token };
+  } catch {
+    return null;
+  }
+}
+
 function roleRequired(...roles) {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
@@ -398,15 +413,17 @@ app.get("/docs", (_req, res) => {
 
 app.post("/auth/register", authLimiter, async (req, res) => {
   const usersCount = await prisma.user.count();
+  const requester = optionalAuthenticatedUser(req);
+  const canCreateAsAdmin = Boolean(requester && isPrivileged(requester.user));
 
-  if (!publicRegistrationEnabled && usersCount > 0) {
+  if (!publicRegistrationEnabled && usersCount > 0 && !canCreateAsAdmin) {
     res.status(403).json({ error: "Cadastro público desativado. Solicite a criação do usuário ao administrador." });
     return;
   }
 
   try {
     const user = await createUserAccount(req.body || {});
-    const token = createToken(user);
+    const token = canCreateAsAdmin ? requester.token : createToken(user);
     res.status(201).json({ user, token });
   } catch (error) {
     res.status(error.status || 400).json({ error: error.message });
